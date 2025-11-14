@@ -1,11 +1,13 @@
 package routes
 
 import (
-	"github.com/gin-gonic/gin"
 	"gin-app/controllers"
+
+	"github.com/gin-gonic/gin"
 )
 
 func UserRoutes(r *gin.Engine) {
-	r.GET("/users", controllers.GetUsers)
-	r.POST("/users", controllers.CreateUser)
+    user := r.Group("/user")
+    user.POST("/create", controllers.CreateUser)
+    user.POST("/login", controllers.LoginUser)
 }
