@@ -8,7 +8,7 @@ import (
 
 var JWT_SECRET = []byte("supersecret_key_change_me")
 
-func GenerateToken(id string) (string, error) {
+func GenerateToken(id string, email string) (string, error) {
 
 	claims := jwt.MapClaims{
 		"userId": id,

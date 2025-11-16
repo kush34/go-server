@@ -8,8 +8,10 @@ import (
 	"gin-app/models"
 
 	"gin-app/utils"
+
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -106,7 +108,7 @@ func LoginUser(c *gin.Context) {
 		return
 	}
 
-	token, err := utils.GenerateToken(existingUser.ID.Hex())
+	token, err := utils.GenerateToken(existingUser.ID.Hex(), existingUser.Email)
 	if err != nil {
 		c.JSON(500, gin.H{"error": "failed to generate token"})
 		return
@@ -125,5 +127,41 @@ func LoginUser(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"message": "login success",
 		"token":   token,
+	})
+}
+
+func UserProfile(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Get userId from middleware
+	userID := c.GetString("userId")
+	if userID == "" {
+		c.JSON(401, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	// Convert string ID → ObjectID
+	objID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		c.JSON(400, gin.H{"error": "invalid user id"})
+		return
+	}
+
+	// Fetch user from DB
+	var user models.User
+	err = userCollection.FindOne(ctx, bson.M{"_id": objID}).Decode(&user)
+
+	if err != nil {
+		c.JSON(404, gin.H{"error": "user not found"})
+		return
+	}
+
+	// Return user profile (but hide password)
+	user.Password = ""
+
+	c.JSON(200, gin.H{
+		"message": "profile fetched",
+		"user":    user,
 	})
 }
