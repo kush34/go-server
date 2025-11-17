@@ -130,6 +130,12 @@ func LoginUser(c *gin.Context) {
 	})
 }
 
+type PublicUser struct {
+	ID    primitive.ObjectID `json:"_id"`
+	Email string             `json:"email"`
+	Name  string             `json:"username"`
+}
+
 func UserProfile(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -157,11 +163,14 @@ func UserProfile(c *gin.Context) {
 		return
 	}
 
-	// Return user profile (but hide password)
-	user.Password = ""
+	publicUser := PublicUser{
+		ID:    user.ID,
+		Email: user.Email,
+		Name:  user.Name,
+	}
 
 	c.JSON(200, gin.H{
 		"message": "profile fetched",
-		"user":    user,
+		"user":    publicUser,
 	})
 }
