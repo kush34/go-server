@@ -14,5 +14,4 @@ func UserRoutes(r *gin.Engine) {
 	protectedUser := r.Group("/api")
 	protectedUser.Use(middleware.AuthMiddleware())
 	protectedUser.GET("/me", controllers.UserProfile)
-
 }
